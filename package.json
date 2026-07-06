@@ -1,0 +1,34 @@
+{
+  "name": "@kyriazis/pi-orchestrator",
+  "version": "1.0.0",
+  "description": "Code-guided durable execution orchestrator for pi — delegate workflows to subagents via TypeScript scripts",
+  "type": "module",
+  "main": "extensions/index.ts",
+  "keywords": [
+    "pi-package",
+    "orchestrator",
+    "subagent",
+    "multi-agent"
+  ],
+  "files": [
+    "extensions",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kyriazis/pi-orchestrator.git"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ]
+  }
+}
