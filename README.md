@@ -4,7 +4,7 @@ Code-guided durable execution for the [pi coding agent](https://pi.dev).
 
 Has the agent ever promised it prompted a subagent "with a clear, detailed instruction" — but when you expanded the tool call, the actual prompt was vague, incomplete, or just wrong?
 
-That's the problem this solves. Think of it as **Claude Code Workflows for any model** — instead of the LLM describing subagent prompts in prose, **you write real TypeScript**. The orchestrator executes it literally — no paraphrasing, no hallucination, no lossy translation. You review the script before it runs.
+That's the problem this solves. Instead of the LLM describing subagent prompts in prose, **you write real TypeScript**. The orchestrator executes it literally — no paraphrasing, no hallucination, no lossy translation. You review the script before it runs.
 
 ## What it does
 
@@ -180,8 +180,6 @@ You are a scout. Quickly investigate a codebase and return structured findings.
 ## Why "orchestrator" and not "subagent"?
 
 The built-in `subagent` tool sends a natural language description to the LLM, which then constructs the prompt. The orchestrator sends **code** — the prompt is the code itself, executed verbatim. Less indirection, more trust. Loops and conditionals are real control flow, not descriptions of control flow.
-
-The same idea behind [Claude Code Dynamic Workflows](https://www.infoq.com/news/2026/06/dynamic-workflows-claude-code) — write the orchestration as code, let agents do the thinking — but available in pi, working with any model, and with a review gate before execution.
 
 ## License
 
