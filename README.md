@@ -38,10 +38,11 @@ while (iterations < maxIterations) {
 
   // Separate sessions so each agent starts fresh — no history bias
   const review = await delegate(`review-${iterations}`, 'reviewer',
+    `You are evaluating text only. Do NOT read or edit any files.\n\n` +
     `Evaluate this system prompt on a scale of 1-10.\n` +
     `Current prompt:\n${prompt}\n\n` +
     `Previous critique: ${critique}\n\n` +
-    `Give specific improvement suggestions.\n` +
+    `Give specific improvement suggestions. Return only your evaluation text.\n` +
     `If 8 or above, start your response with "APPROVED: "`,
   );
 
@@ -53,7 +54,9 @@ while (iterations < maxIterations) {
 
   // Worker rewrites based on critique
   prompt = await delegate(`rewrite-${iterations}`, 'worker',
-    `Improve this system prompt based on the critique below.\n\n` +
+    `You are rewriting text only. Do NOT read or edit any files.\n\n` +
+    `Improve this system prompt based on the critique below.\n` +
+    `Return ONLY the new prompt text, nothing else.\n\n` +
     `Current prompt:\n${prompt}\n\n` +
     `Critique:\n${review}`,
   );
@@ -68,7 +71,7 @@ finish(`Final system prompt after ${iterations} iterations:\n\n${prompt}`);
 
 | Call | Agent | Result |
 |------|-------|--------|
-| 1 | `reviewer` | Scores initial prompt, flags missing safety rules, scope boundaries |
+| 1 | `reviewer` | Scores initial prompt, flags missing safety rules and scope boundaries |
 | 2 | `worker` | Rewrites prompt addressing the critique |
 | 3 | `reviewer` | Re-evaluates — catches that worker returned prose, not a clean prompt |
 | 4 | `worker` | Produces a clean, properly structured version |
