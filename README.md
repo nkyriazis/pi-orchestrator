@@ -78,6 +78,27 @@ finish(`Final system prompt after ${iterations} iterations:\n\n${prompt}`);
 
 Each delegate call uses a **unique session** so the agent sees only the current task — no accumulated history. Use the same session key when you want the agent to remember prior turns.
 
+The refinement loop in action:
+
+```mermaid
+sequenceDiagram
+    participant S as Script
+    participant R as reviewer
+    participant W as worker
+
+    S->>R: delegate(review-1)<br/>"score this prompt"
+    R-->>S: 2/10 — too generic
+    S->>W: delegate(rewrite-1)<br/>"improve based on critique"
+    W-->>S: detailed prompt v2
+    S->>R: delegate(review-2)<br/>"re-evaluate"
+    R-->>S: 9/10 — minor issues
+    S->>W: delegate(rewrite-2)<br/>"fix remaining issues"
+    W-->>S: polished prompt v3
+    S->>R: delegate(review-3)<br/>"final check"
+    R-->>S: APPROVED: 10/10
+    Note over S,R: early exit — loop ends
+```
+
 ## The DSL
 
 Four globals injected into your script:
@@ -114,6 +135,19 @@ finish(`Audit complete:\n${plan}`);
 ## Workflow
 
 The orchestrator enforces a review step — the agent **cannot** create and execute in one turn:
+
+```mermaid
+graph LR
+    A[create<br/>write TypeScript script] --> B[view<br/>review the plan]
+    B --> C{approve?}
+    C -->|yes| D[execute<br/>run line by line]
+    C -->|no| E[update<br/>modify script]
+    E --> B
+    D --> F[completed / error]
+    style B fill:#e1f5fe
+    style C fill:#fff3e0
+    style D fill:#e8f5e9
+```
 
 | Step | Action | What happens |
 |------|--------|-------------|
