@@ -2,7 +2,9 @@
 
 Code-guided durable execution for the [pi coding agent](https://pi.dev).
 
-Think of it as **Claude Code Workflows for any model** — the agent writes a TypeScript script that orchestrates subagents with real loops, branching, and fan-out, instead of planning turn-by-turn in prose. You review the script before it runs.
+Has the agent ever promised it prompted a subagent "with a clear, detailed instruction" — but when you expanded the tool call, the actual prompt was vague, incomplete, or just wrong?
+
+That's the problem this solves. Think of it as **Claude Code Workflows for any model** — instead of the LLM describing subagent prompts in prose, **you write real TypeScript**. The orchestrator executes it literally — no paraphrasing, no hallucination, no lossy translation. You review the script before it runs.
 
 ## What it does
 
