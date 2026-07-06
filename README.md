@@ -136,19 +136,6 @@ finish(`Audit complete:\n${plan}`);
 
 The orchestrator enforces a review step — the agent **cannot** create and execute in one turn:
 
-```mermaid
-graph LR
-    A[create<br/>write TypeScript script] --> B[view<br/>review the plan]
-    B --> C{approve?}
-    C -->|yes| D[execute<br/>run line by line]
-    C -->|no| E[update<br/>modify script]
-    E --> B
-    D --> F[completed / error]
-    style B fill:#e1f5fe
-    style C fill:#fff3e0
-    style D fill:#e8f5e9
-```
-
 | Step | Action | What happens |
 |------|--------|-------------|
 | 1 | `create` | Script is stored, not executed |
