@@ -36,7 +36,8 @@ while (iterations < maxIterations) {
   iterations++;
   consoleLog(`Iteration ${iterations}...`);
 
-  const review = await delegate('refinement', 'reviewer',
+  // Separate sessions so each agent starts fresh — no history bias
+  const review = await delegate(`review-${iterations}`, 'reviewer',
     `Evaluate this system prompt on a scale of 1-10.\n` +
     `Current prompt:\n${prompt}\n\n` +
     `Previous critique: ${critique}\n\n` +
@@ -50,8 +51,8 @@ while (iterations < maxIterations) {
     break;
   }
 
-  // Worker rewrites based on critique — same session accumulates history
-  prompt = await delegate('refinement', 'worker',
+  // Worker rewrites based on critique
+  prompt = await delegate(`rewrite-${iterations}`, 'worker',
     `Improve this system prompt based on the critique below.\n\n` +
     `Current prompt:\n${prompt}\n\n` +
     `Critique:\n${review}`,
@@ -72,7 +73,7 @@ finish(`Final system prompt after ${iterations} iterations:\n\n${prompt}`);
 | 3 | `reviewer` | Re-evaluates — catches that worker returned prose, not a clean prompt |
 | 4 | `worker` | Produces a clean, properly structured version |
 
-The **same session** (`'refinement'`) means each call sees the full history — the reviewer remembers what was already critiqued, the worker remembers what was already tried.
+Each delegate call uses a **unique session** so the agent sees only the current task — no accumulated history. Use the same session key when you want the agent to remember prior turns.
 
 ## The DSL
 
@@ -80,7 +81,7 @@ Four globals injected into your script:
 
 | Global | Purpose |
 |--------|---------|
-| `delegate(session, agent, task)` | Run a subagent. Same `session` key shares history across calls. |
+| `delegate(session, agent, task)` | Run a subagent. Same `session` key → accumulated history. Unique keys → fresh context each call. |
 | `delegateParallel(tasks, options?)` | Run independent subagents concurrently. |
 | `consoleLog(...args)` | Log output visible in results. |
 | `finish(result)` | Declare the final output — surfaced prominently when execution ends. |
