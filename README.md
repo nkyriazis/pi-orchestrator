@@ -14,7 +14,7 @@ A single tool that lets the agent:
 2. **Show** you the script for review
 3. **Execute** it — line by line, with live progress tracking
 
-What you see in the script is exactly what runs.
+What you see in the script is exactly what runs. It supports **loops**, **conditionals**, and **stateful sessions** — things the built-in `subagent` tool can't do at all.
 
 ## Install
 
@@ -22,27 +22,57 @@ What you see in the script is exactly what runs.
 pi install npm:@nkyriazis/pi-orchestrator
 ```
 
-## Example
+## Example: Iterative prompt refinement
 
-The agent creates a script:
+This script improves a system prompt through a feedback loop — reviewer critiques, worker rewrites, repeat until approved or exhausted:
 
 ```typescript
-const findings = await delegate(
-  'audit',
-  'scout',
-  'Find all authentication code and summarize the auth flow',
-);
+let prompt = "You are a helpful coding assistant.";
+let critique = "Initial draft — not yet evaluated.";
+let iterations = 0;
+const maxIterations = 3;
 
-const plan = await delegate(
-  'audit',
-  'planner',
-  'Based on these findings, plan an OAuth migration:\n' + findings,
-);
+while (iterations < maxIterations) {
+  iterations++;
+  consoleLog(`Iteration ${iterations}...`);
 
-finish('Auth audit complete.\n\n' + plan);
+  const review = await delegate('refinement', 'reviewer',
+    `Evaluate this system prompt on a scale of 1-10.\n` +
+    `Current prompt:\n${prompt}\n\n` +
+    `Previous critique: ${critique}\n\n` +
+    `Give specific improvement suggestions.\n` +
+    `If 8 or above, start your response with "APPROVED: "`,
+  );
+
+  // Early exit if the reviewer is satisfied
+  if (review.startsWith("APPROVED:")) {
+    consoleLog(`Approved at iteration ${iterations}!`);
+    break;
+  }
+
+  // Worker rewrites based on critique — same session accumulates history
+  prompt = await delegate('refinement', 'worker',
+    `Improve this system prompt based on the critique below.\n\n` +
+    `Current prompt:\n${prompt}\n\n` +
+    `Critique:\n${review}`,
+  );
+
+  critique = review;
+}
+
+finish(`Final system prompt after ${iterations} iterations:\n\n${prompt}`);
 ```
 
-You review it with `view`, approve with `execute`, and watch it run — each `delegate()` call streaming progress as it goes.
+**What happens:**
+
+| Call | Agent | Result |
+|------|-------|--------|
+| 1 | `reviewer` | Scores initial prompt, flags missing safety rules, scope boundaries |
+| 2 | `worker` | Rewrites prompt addressing the critique |
+| 3 | `reviewer` | Re-evaluates — catches that worker returned prose, not a clean prompt |
+| 4 | `worker` | Produces a clean, properly structured version |
+
+The **same session** (`'refinement'`) means each call sees the full history — the reviewer remembers what was already critiqued, the worker remembers what was already tried.
 
 ## The DSL
 
@@ -55,45 +85,31 @@ Four globals injected into your script:
 | `consoleLog(...args)` | Log output visible in results. |
 | `finish(result)` | Declare the final output — surfaced prominently when execution ends. |
 
-### Sequential with shared context
-
-```typescript
-// Same session ("research") — second call sees the first call's output
-const api = await delegate('research', 'scout', 'Find the API entry points');
-const deps = await delegate('research', 'scout', 'Now find the dependencies those entry points import');
-finish('API surface mapped. Entry points and deps documented above.');
-```
-
-### Parallel independent calls
+### Parallel fan-out
 
 ```typescript
 const results = await delegateParallel([
-  ['models', 'scout', 'Find all model definitions and their interfaces'],
-  ['providers', 'scout', 'Find all provider implementations and their config'],
-], { maxConcurrency: 2 });
+  ['auth', 'scout', 'Find all authentication and authorization code. Map the flow end-to-end.'],
+  ['errors', 'scout', 'Find all error handling patterns. Note where errors are swallowed or re-thrown.'],
+  ['config', 'scout', 'Find all configuration — env vars, config files, hardcoded values.'],
+], { maxConcurrency: 3 });
 
-const [modelsOutput, providersOutput] = results.map(([_, output]) => output);
-finish('Models and providers analyzed in parallel.');
+const [auth, errors, config] = results.map(([_, output]) => output);
+finish(`Codebase analysis complete. Auth: ${auth}\nErrors: ${errors}\nConfig: ${config}`);
 ```
 
-### Multi-step pipeline
+### Sequential pipeline
 
 ```typescript
-const code = await delegate('review', 'scout',
-  'Find the error handling patterns in the codebase');
-
-const assessment = await delegate('review', 'reviewer',
-  'Critique the error handling. What is missing? ' + code);
-
-const improved = await delegate('review', 'worker',
-  'Implement the improvements suggested: ' + assessment);
-
-finish('Error handling review and improvements complete.');
+const findings = await delegate('audit', 'scout', 'Find all exports in the codebase');
+const review = await delegate('audit', 'reviewer', 'Critique the code quality: ' + findings);
+const plan = await delegate('audit', 'planner', 'Create a prioritized fix list: ' + review);
+finish(`Audit complete:\n${plan}`);
 ```
 
 ## Workflow
 
-The orchestrator enforces a review step:
+The orchestrator enforces a review step — the agent **cannot** create and execute in one turn:
 
 | Step | Action | What happens |
 |------|--------|-------------|
@@ -101,8 +117,6 @@ The orchestrator enforces a review step:
 | 2 | `view` | You see the script and plan |
 | 3 | `execute` | Script runs after you approve |
 | 4 | `update` | Modify mid-flight if needed |
-
-This means the agent **cannot** create and run a script in one turn. You always see the plan first.
 
 ## Live tracking
 
@@ -140,7 +154,7 @@ You are a scout. Quickly investigate a codebase and return structured findings.
 
 ## Why "orchestrator" and not "subagent"?
 
-The built-in `subagent` tool sends a natural language description to the LLM, which then constructs the prompt. The orchestrator sends **code** — the prompt is the code itself, executed verbatim. Less indirection, more trust.
+The built-in `subagent` tool sends a natural language description to the LLM, which then constructs the prompt. The orchestrator sends **code** — the prompt is the code itself, executed verbatim. Less indirection, more trust. Loops and conditionals are real control flow, not descriptions of control flow.
 
 ## License
 
