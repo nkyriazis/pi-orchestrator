@@ -1,5 +1,5 @@
 {
-  "name": "@kyriazis/pi-orchestrator",
+  "name": "@nkyriazis/pi-orchestrator",
   "version": "1.0.0",
   "description": "Code-guided durable execution orchestrator for pi — delegate workflows to subagents via TypeScript scripts",
   "type": "module",
