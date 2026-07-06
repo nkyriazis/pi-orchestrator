@@ -1,20 +1,17 @@
-# Trusted Publishing for npm — no long-lived tokens, uses OIDC.
-# See https://docs.npmjs.com/trusted-publishers
+# One-shot: publishes the package, then configure Trusted Publishing on npmjs.com
+# Delete this workflow after the first publish.
+# See https://github.com/azu/setup-npm-trusted-publish
 
-name: Publish to npm
+name: Bootstrap (first publish)
 
 on:
   workflow_dispatch:
 
-concurrency: ${{ github.workflow }}
-
 permissions:
-  id-token: write  # OIDC — required for trusted publishing
   contents: read
 
 jobs:
   publish:
-    name: Publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,3 +22,5 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
