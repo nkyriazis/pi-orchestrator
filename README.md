@@ -181,7 +181,7 @@ You are a scout. Quickly investigate a codebase and return structured findings.
 
 The built-in `subagent` tool sends a natural language description to the LLM, which then constructs the prompt. The orchestrator sends **code** — the prompt is the code itself, executed verbatim. Less indirection, more trust. Loops and conditionals are real control flow, not descriptions of control flow.
 
-The same idea behind [Claude Code Workflows](https://claude.ai/blog/dynamic-workflows) — write the orchestration as code, let agents do the thinking — but available in pi, working with any model, and with a review gate before execution.
+The same idea behind [Claude Code Dynamic Workflows](https://www.infoq.com/news/2026/06/dynamic-workflows-claude-code) — write the orchestration as code, let agents do the thinking — but available in pi, working with any model, and with a review gate before execution.
 
 ## License
 
