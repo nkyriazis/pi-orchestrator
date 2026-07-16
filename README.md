@@ -8,6 +8,8 @@ That's the problem this solves. Instead of the LLM describing subagent prompts i
 
 ## What it does
 
+> 16/7/2026 update. Claude calls this [ultracode and dynamic workflows](https://code.claude.com/docs/en/workflows)
+
 A single tool that lets the agent:
 
 1. **Write** a TypeScript script using `delegate()` and `delegateParallel()`
